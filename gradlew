@@ -1,31 +1,33 @@
-#!/bin/sh
-APP_NAME="Gradle"
-APP_BASE_NAME=`basename "$0"`
-DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
-MAX_FD="maximum"
-warn () { echo "$*"; }
-die () { echo; echo "$*"; echo; exit 1; }
-OS="`uname`"
-case "$OS" in
-  CYGWIN*|MINGW*) cygwin=true ;;
-  Darwin*) darwin=true ;;
-  NONSTOP*) nonstop=true ;;
-esac
-CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
-find_java_home () {
-  if [ -n "$JAVA_HOME" ] ; then
-    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
-      JAVACMD="$JAVA_HOME/jre/sh/java"
-    else
-      JAVACMD="$JAVA_HOME/bin/java"
-    fi
-    if [ ! -x "$JAVACMD" ] ; then
-      die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME"
-    fi
-  else
-    JAVACMD="java"
-    which java >/dev/null 2>&1 || die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH."
-  fi
-}
-find_java_home
-exec "$JAVACMD" $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS "-Dorg.gradle.appname=$APP_BASE_NAME" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"
+name: Build AutoClicker APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build Release APK
+        run: gradle assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoClicker-APK
+          path: app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
